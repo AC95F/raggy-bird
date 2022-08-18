@@ -5,7 +5,8 @@ include(CTest)
 enable_testing()
 cmake_policy(SET CMP0074 NEW)
 
-add_executable(raggy-bird main.cpp)
+file(GLOB SRCFILES *.cpp *.h)
+add_executable(raggy-bird ${SRCFILES})
 
 include_directories(headers "E:\\Program Files\\sfml_mingw\\include")
 
