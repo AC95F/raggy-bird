@@ -6,18 +6,18 @@ Pipe::Pipe(float gapPos, const sf::Texture *texture) {
 	upperPart.setTexture(*texture);
 	lowerPart.setTexture(*texture);
 
-	upperPart.setScale(1.5f, 1.5f);
+	upperPart.setScale(1.5f, -1.5f);
 	lowerPart.setScale(1.5f, 1.5f);
 
-	upperPart.rotate(180.f);
+	//upperPart.rotate(180.f);
 
-	lowerPart.setPosition(screenResolution.x, screenResolution.y * 0.60f + gapPos);
-	upperPart.setPosition(screenResolution.x + upperPart.getLocalBounds().width * 1.5f, screenResolution.y * 0.30f + gapPos);
+	lowerPart.setPosition(screenResolution.x, screenResolution.y * 0.58f + gapPos);
+	upperPart.setPosition(screenResolution.x, screenResolution.y * 0.32f + gapPos);
 }
 
 void Pipe::Move(float newPos) {
 	lowerPart.setPosition(newPos, lowerPart.getPosition().y);
-	upperPart.setPosition(newPos + upperPart.getLocalBounds().width * 1.5f, upperPart.getPosition().y);
+	upperPart.setPosition(newPos, upperPart.getPosition().y);
 }
 
 float Pipe::GetPosition() {

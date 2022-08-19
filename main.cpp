@@ -7,14 +7,10 @@
 
 int main()
 {
-	sf::Texture birdTexture;
-	sf::Texture pipeTexture;
-	sf::Texture bgTexture;
-	sf::Sprite bg;
+	sf::Texture birdTexture, pipeTexture, bgTexture, floorTexture;
+	sf::Sprite bg, playerBird, floor;
 
 	sf::RenderWindow window(sf::VideoMode(screenResolution.x, screenResolution.y), "Raggy Bird");
-	sf::Sprite playerBird;
-	playerBird.setPosition(window.getSize().x / 4.f - playerBird.getLocalBounds().width / 2, 0);
 	sf::Time deltaTime;
 	sf::Clock deltaClock;
 	sf::Clock pipeTimer;
@@ -28,7 +24,7 @@ int main()
 	float xVelocity = 0.f;
 	float yVelocity = 0.f;
 
-	float pipeSpeed = 150.f;
+	float pipeSpeed = 144.f;
 	float timeBetweenPipes = 1.5f;
 	std::vector<Pipe> pipes;
 	std::random_device rd;
@@ -36,13 +32,19 @@ int main()
 	if (bgTexture.loadFromFile("assets/sprites/bg.jpg")) {
 		bg.setTexture(bgTexture);
 	}
-	pipeTexture.loadFromFile("assets/sprites/pipe.png");
 	if (birdTexture.loadFromFile("assets/sprites/bird.png")) {
 		playerBird.setTexture(birdTexture);
 		playerBird.setScale(1.5f, 1.5f);
 	}
+	if (floorTexture.loadFromFile("assets/sprites/floor.jpg")) {
+		floor.setTexture(floorTexture);
+		floor.setScale(1.5f, 1.5f);
+	}
 
-	//Pipe testPipe = Pipe(screenResolution.y / 2, &pipeTexture);
+	pipeTexture.loadFromFile("assets/sprites/pipe.png");
+
+	playerBird.setPosition(window.getSize().x / 4.f - playerBird.getLocalBounds().width / 2, 0);
+	floor.setPosition(0.f, screenResolution.y * 0.75f);
 
 	// Game Loop
 	while (window.isOpen())
@@ -59,9 +61,14 @@ int main()
 			}
 			if (event.type == sf::Event::KeyPressed)
 			{
-				yVelocity = jumpForce;
+				if (event.key.code == sf::Keyboard::Space)
+				{
+					yVelocity = jumpForce;
+				}
 			}
 		}
+
+		// Update
 
 		// Player Movement
 		yVelocity += gravity * deltaTime.asSeconds();
@@ -78,20 +85,32 @@ int main()
 			yVelocity = 0.f;
 		}
 
+		/*
+		Rotate player sprite
+		From 60° to -90°
+		*/
+
 		// Pipe generation
 		if (pipeTimer.getElapsedTime().asSeconds() >= timeBetweenPipes) {
 			std::mt19937 mt(rd());
-			std::uniform_real_distribution<float> dist(-100.f, 100.f);
+			std::uniform_real_distribution<float> dist(-150.f, 50.f);
 			pipes.push_back(Pipe(dist(mt), &pipeTexture));
 			pipeTimer.restart();
 		}
 
+		// Pipe movement
 		for (size_t i = 0; i < pipes.size(); i++) {
 			pipes[i].Move(pipes[i].GetPosition() - pipeSpeed * deltaTime.asSeconds());
 			if (pipes[i].IsOutOfBounds()) {
 				pipes.erase(pipes.begin()+i);
 				i--;
 			}
+		}
+
+		// Floor movement
+		floor.setPosition(floor.getPosition().x - pipeSpeed * deltaTime.asSeconds(), floor.getPosition().y);
+		if (floor.getPosition().x <= -floor.getLocalBounds().width / 2.f) {
+			floor.setPosition(0, floor.getPosition().y);
 		}
 
 		// Rendering
@@ -102,6 +121,7 @@ int main()
 			window.draw(pipes[i].lowerPart);
 		}
 		window.draw(playerBird);
+		window.draw(floor);
 		window.display();
 	}
 
