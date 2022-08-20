@@ -9,14 +9,28 @@ int main()
 {
 	sf::Texture birdTexture, pipeTexture, bgTexture, floorTexture;
 	sf::Sprite bg, playerBird, floor;
+	sf::CircleShape birdHitbox;
 
 	sf::RenderWindow window(sf::VideoMode(screenResolution.x, screenResolution.y), "Raggy Bird");
 	sf::Time deltaTime;
 	sf::Clock deltaClock;
 	sf::Clock pipeTimer;
 	window.setKeyRepeatEnabled(false);
+	window.setVerticalSyncEnabled(true);
 
-	const float gravity = 30.f;
+	int score = 0;
+
+	sf::Font font;
+	font.loadFromFile("assets/fonts/upheavtt.ttf");
+	sf::Text scoreText;
+	scoreText.setFont(font);
+	scoreText.setString("0");
+	scoreText.setCharacterSize(60);
+	scoreText.setPosition((screenResolution.x / 2) - scoreText.getLocalBounds().width / 2, 10);
+	scoreText.setOutlineColor(sf::Color::Black);
+	scoreText.setOutlineThickness(3.f);
+
+	const float gravity = 34.f;
 	const float mass = 20.f;
 	const float maxSpeed = 100.f;
 	const float jumpForce = -20.f;
@@ -43,8 +57,15 @@ int main()
 
 	pipeTexture.loadFromFile("assets/sprites/pipe.png");
 
+	playerBird.setOrigin(playerBird.getLocalBounds().width / 2.f, playerBird.getLocalBounds().height / 2.f);
 	playerBird.setPosition(window.getSize().x / 4.f - playerBird.getLocalBounds().width / 2, 0);
 	floor.setPosition(0.f, screenResolution.y * 0.75f);
+	
+	birdHitbox.setRadius(playerBird.getLocalBounds().width / 2.f);
+	birdHitbox.setFillColor(sf::Color::Green);
+	birdHitbox.setOrigin(birdHitbox.getLocalBounds().width / 2.f, birdHitbox.getLocalBounds().height / 2.f);
+	birdHitbox.setPosition(playerBird.getPosition());
+	
 
 	// Game Loop
 	while (window.isOpen())
@@ -84,11 +105,10 @@ int main()
 			playerBird.setPosition(window.getSize().x / 4.f - playerBird.getLocalBounds().width / 2, 0);
 			yVelocity = 0.f;
 		}
+		
+		playerBird.setRotation(yVelocity * 3.f);
 
-		/*
-		Rotate player sprite
-		From 60° to -90°
-		*/
+		birdHitbox.setPosition(playerBird.getPosition());
 
 		// Pipe generation
 		if (pipeTimer.getElapsedTime().asSeconds() >= timeBetweenPipes) {
@@ -101,11 +121,22 @@ int main()
 		// Pipe movement
 		for (size_t i = 0; i < pipes.size(); i++) {
 			pipes[i].Move(pipes[i].GetPosition() - pipeSpeed * deltaTime.asSeconds());
+
+			if (pipes[i].GetPosition() <= playerBird.getPosition().x && !pipes[i].isPassed) {
+				score++;
+				pipes[i].isPassed = true;
+			}
 			if (pipes[i].IsOutOfBounds()) {
 				pipes.erase(pipes.begin()+i);
 				i--;
 			}
+			if (birdHitbox.getGlobalBounds().intersects(pipes[i].lowerPartHitbox.getGlobalBounds())
+				|| birdHitbox.getGlobalBounds().intersects(pipes[i].upperPartHitbox.getGlobalBounds())
+				|| birdHitbox.getGlobalBounds().intersects(floor.getGlobalBounds())) {
+				score = 0;
+			}
 		}
+		scoreText.setString(std::to_string(score));
 
 		// Floor movement
 		floor.setPosition(floor.getPosition().x - pipeSpeed * deltaTime.asSeconds(), floor.getPosition().y);
@@ -118,10 +149,15 @@ int main()
 		window.draw(bg);
 		for (size_t i = 0; i < pipes.size(); i++) {
 			window.draw(pipes[i].upperPart);
+			//window.draw(pipes[i].upperPartHitbox);
+
 			window.draw(pipes[i].lowerPart);
+			//window.draw(pipes[i].lowerPartHitbox);
 		}
 		window.draw(playerBird);
+		//window.draw(birdHitbox);
 		window.draw(floor);
+		window.draw(scoreText);
 		window.display();
 	}
 
