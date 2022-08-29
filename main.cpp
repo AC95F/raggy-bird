@@ -29,7 +29,7 @@ int main()
 	float birdAnimSpeed = 0.12f;
 	float fallSpriteSpeed = 5.f;
 
-	sf::Font font, flappyFont;
+	sf::Font font;
 	font.loadFromFile("assets/fonts/upheavtt.ttf");
 	sf::Text scoreText;
 	scoreText.setFont(font);
@@ -39,7 +39,6 @@ int main()
 	scoreText.setOutlineColor(sf::Color::Black);
 	scoreText.setOutlineThickness(3.f);
 
-	flappyFont.loadFromFile("assets/fonts/FlappyBirdy.ttf");
 	sf::Text titleText;
 	titleText.setFont(font);
 	titleText.setString("Raggy\n Bird");
@@ -121,12 +120,12 @@ int main()
 
 			playerBird.move(0, yVelocity * mass * deltaTime.asSeconds());
 
-			// Out of bounds
-			// if (playerBird.getPosition().y + playerBird.getLocalBounds().width > window.getSize().y || playerBird.getPosition().y < 0.f)
-			// {
-			// 	playerBird.setPosition(screenResolution.x / 4.f, screenResolution.y / 2.f);
-			// 	yVelocity = 0.f;
-			// }
+			//Out of bounds
+			if (playerBird.getPosition().y + playerBird.getLocalBounds().width > window.getSize().y || playerBird.getPosition().y < 0.f)
+			{
+				playerBird.setPosition(screenResolution.x / 4.f, 0);
+				yVelocity = 0.f;
+			}
 			
 			playerBird.setRotation(yVelocity * 3.f);
 
