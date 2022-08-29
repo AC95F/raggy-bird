@@ -5,8 +5,10 @@ include(CTest)
 enable_testing()
 cmake_policy(SET CMP0074 NEW)
 
+set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/appicon.rc")
+
 file(GLOB SRCFILES *.cpp *.h)
-add_executable(raggy-bird ${SRCFILES})
+add_executable(raggy-bird ${SRCFILES} ${APP_ICON_RESOURCE_WINDOWS})
 
 include_directories(headers "E:\\Program Files\\sfml_mingw\\include")
 
