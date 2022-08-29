@@ -26,10 +26,10 @@ int main()
 	float maxSpeed = 100.f;
 	float jumpForce = -20.f;
 	float yVelocity = 0.f;
-	float birdAnimSpeed = 0.15f;
+	float birdAnimSpeed = 0.12f;
 	float fallSpriteSpeed = 5.f;
 
-	sf::Font font;
+	sf::Font font, flappyFont;
 	font.loadFromFile("assets/fonts/upheavtt.ttf");
 	sf::Text scoreText;
 	scoreText.setFont(font);
@@ -38,6 +38,16 @@ int main()
 	scoreText.setPosition((screenResolution.x / 2) - scoreText.getLocalBounds().width / 2, 10);
 	scoreText.setOutlineColor(sf::Color::Black);
 	scoreText.setOutlineThickness(3.f);
+
+	flappyFont.loadFromFile("assets/fonts/FlappyBirdy.ttf");
+	sf::Text titleText;
+	titleText.setFont(font);
+	titleText.setString("Raggy\n Bird");
+	titleText.setCharacterSize(100);
+	titleText.setPosition((screenResolution.x / 2) - titleText.getLocalBounds().width / 2, 10);
+	titleText.setFillColor(sf::Color::White);
+	titleText.setOutlineColor(sf::Color::Black);
+	titleText.setOutlineThickness(3.f);
 
 	float pipeSpeed = 144.f;
 	float timeBetweenPipes = 1.5f;
@@ -160,10 +170,10 @@ int main()
 			playerBird.setTexture(birdTexture);
 		}
 		else if (birdAnimTimer.getElapsedTime().asSeconds() < birdAnimSpeed * 2) {
-			playerBird.setTexture(birdTexture2);
+			playerBird.setTexture(birdTexture3);
 		}
 		else if (birdAnimTimer.getElapsedTime().asSeconds() < birdAnimSpeed * 3) {
-			playerBird.setTexture(birdTexture3);
+			playerBird.setTexture(birdTexture2);
 		}
 		else {
 			birdAnimTimer.restart();
@@ -188,7 +198,8 @@ int main()
 		window.draw(playerBird);
 		//window.draw(birdHitbox);
 		window.draw(floor);
-		window.draw(scoreText);
+		if (!isGameOver) window.draw(scoreText);
+		if (isGameOver) window.draw(titleText);
 		window.display();
 	}
 
