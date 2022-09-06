@@ -19,11 +19,13 @@ int main()
 
 	int score = 0;
 
-	bool isGameOver = true;
+	bool isGameOver = false;
+	bool isGameStarted = false;
+	bool isBirdInGround = false;
 
 	float gravity = 34.f;
 	float mass = 20.f;
-	float maxSpeed = 100.f;
+	float maxSpeed = 30.f;
 	float jumpForce = -20.f;
 	float yVelocity = 0.f;
 	float birdAnimSpeed = 0.12f;
@@ -47,6 +49,26 @@ int main()
 	titleText.setFillColor(sf::Color::White);
 	titleText.setOutlineColor(sf::Color::Black);
 	titleText.setOutlineThickness(3.f);
+
+	sf::Text tutoText;
+	tutoText.setFont(font);
+	tutoText.setString("Press Space to Flap");
+	tutoText.setCharacterSize(27);
+	tutoText.setPosition((screenResolution.x / 2) - tutoText.getLocalBounds().width / 2, screenResolution.y / 1.5f);
+	tutoText.setFillColor(sf::Color::White);
+
+	sf::RectangleShape restartButton(sf::Vector2(100.f, 50.f));
+	restartButton.setOrigin(restartButton.getLocalBounds().width / 2.f, restartButton.getLocalBounds().height / 2.f);
+	restartButton.setPosition(screenResolution.x / 2.f, screenResolution.y / 1.5f);
+
+	sf::Text restartButtonText;
+	restartButtonText.setFont(font);
+	restartButtonText.setString("Restart");
+	restartButtonText.setCharacterSize(22);
+	restartButtonText.setOrigin(restartButtonText.getLocalBounds().width / 2.f, restartButtonText.getLocalBounds().height / 2.f);
+	restartButtonText.setPosition(restartButton.getPosition().x,
+									restartButton.getPosition().y - restartButtonText.getLocalBounds().height);
+	restartButtonText.setFillColor(sf::Color::Black);
 
 	float pipeSpeed = 144.f;
 	float timeBetweenPipes = 1.5f;
@@ -85,37 +107,50 @@ int main()
 	birdHitbox.setPosition(playerBird.getPosition());
 	
 	// Game Loop
-	while (window.isOpen())
-	{
+	while (window.isOpen()) {
 		deltaTime = deltaClock.restart();
 		sf::Event event;
 
 		// Player Input
-		while (window.pollEvent(event))
-		{
-			if (event.type == sf::Event::Closed)
-			{
+		while (window.pollEvent(event)) {
+			if (event.type == sf::Event::Closed) {
 				window.close();
 			}
-			if (event.type == sf::Event::KeyPressed)
-			{
-				if (event.key.code == sf::Keyboard::Space)
-				{
+			if (event.type == sf::Event::KeyPressed) {
+				if (event.key.code == sf::Keyboard::Space && !isGameOver) {
 					yVelocity = jumpForce;
+					if (!isGameStarted) isGameStarted = true;
+				}
+			}
+			if (event.type == sf::Event::MouseButtonPressed) {
+				if (event.mouseButton.button == sf::Mouse::Left &&
+				restartButton.getGlobalBounds().contains(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y)
+				&& isGameOver) {
 					isGameOver = false;
+					isGameStarted = false;
+					isBirdInGround = false;
+					playerBird.setPosition(screenResolution.x / 4.f, screenResolution.y / 2.f);
+					yVelocity = 0.f;
+					playerBird.setRotation(0.f);
+					pipes.clear();
+					score = 0;
 				}
 			}
 		}
 
 		// Update
 
-		if (!isGameOver) {
+		if (isGameStarted) {
 
 			// Player Movement
 			yVelocity += gravity * deltaTime.asSeconds();
 			if (yVelocity > maxSpeed)
 			{
 				yVelocity = maxSpeed;
+			}
+			if (isGameOver && birdHitbox.getPosition().y >= floor.getPosition().y + 1.f) {
+				yVelocity = 0.f;
+				isBirdInGround = true;
 			}
 
 			playerBird.move(0, yVelocity * mass * deltaTime.asSeconds());
@@ -127,7 +162,9 @@ int main()
 				yVelocity = 0.f;
 			}
 			
-			playerBird.setRotation(yVelocity * 3.f);
+			if (!isBirdInGround) {
+				playerBird.setRotation(yVelocity * 3.f);
+			}
 
 			birdHitbox.setPosition(playerBird.getPosition());
 
@@ -139,33 +176,41 @@ int main()
 			}
 
 			// Pipe movement
-			for (size_t i = 0; i < pipes.size(); i++) {
-				pipes[i].Move(pipes[i].GetPosition() - pipeSpeed * deltaTime.asSeconds());
+			if (!isGameOver){
+				for (size_t i = 0; i < pipes.size(); i++) {
+					pipes[i].Move(pipes[i].GetPosition() - pipeSpeed * deltaTime.asSeconds());
 
-				if (pipes[i].GetPosition() <= playerBird.getPosition().x && !pipes[i].isPassed) {
-					score++;
-					pipes[i].isPassed = true;
-				}
-				if (pipes[i].IsOutOfBounds()) {
-					pipes.erase(pipes.begin()+i);
-					i--;
-				}
-				if (birdHitbox.getGlobalBounds().intersects(pipes[i].lowerPartHitbox.getGlobalBounds())
+					if (pipes[i].GetPosition() <= playerBird.getPosition().x && !pipes[i].isPassed) {
+						score++;
+						pipes[i].isPassed = true;
+					}
+					if (pipes[i].IsOutOfBounds()) {
+						pipes.erase(pipes.begin()+i);
+						i--;
+					}
+					if (birdHitbox.getGlobalBounds().intersects(pipes[i].lowerPartHitbox.getGlobalBounds())
 					|| birdHitbox.getGlobalBounds().intersects(pipes[i].upperPartHitbox.getGlobalBounds())
 					|| birdHitbox.getGlobalBounds().intersects(floor.getGlobalBounds())) {
-					score = 0;
-					isGameOver = true;
-					pipes.clear();
-					playerBird.setPosition(screenResolution.x / 4.f, screenResolution.y / 2.f);
-					yVelocity = 0.f;
-					playerBird.setRotation(0.f);
+						isGameOver = true;
+						yVelocity = jumpForce / 2.f;
+					}
 				}
+
+
 			}
 			scoreText.setString(std::to_string(score));
 		}
 
+		// Floor movement
+		if (!isGameOver) {
+			floor.setPosition(floor.getPosition().x - pipeSpeed * deltaTime.asSeconds(), floor.getPosition().y);
+			if (floor.getPosition().x <= -floor.getLocalBounds().width / 2.f) {
+				floor.setPosition(0, floor.getPosition().y);
+			}
+		}
+
 		// Bird animation
-		if (birdAnimTimer.getElapsedTime().asSeconds() < birdAnimSpeed || yVelocity > fallSpriteSpeed) {
+		if (birdAnimTimer.getElapsedTime().asSeconds() < birdAnimSpeed || yVelocity > fallSpriteSpeed || isGameOver) {
 			playerBird.setTexture(birdTexture);
 		}
 		else if (birdAnimTimer.getElapsedTime().asSeconds() < birdAnimSpeed * 2) {
@@ -176,12 +221,6 @@ int main()
 		}
 		else {
 			birdAnimTimer.restart();
-		}
-
-		// Floor movement
-		floor.setPosition(floor.getPosition().x - pipeSpeed * deltaTime.asSeconds(), floor.getPosition().y);
-		if (floor.getPosition().x <= -floor.getLocalBounds().width / 2.f) {
-			floor.setPosition(0, floor.getPosition().y);
 		}
 
 		// Rendering
@@ -197,8 +236,15 @@ int main()
 		window.draw(playerBird);
 		//window.draw(birdHitbox);
 		window.draw(floor);
-		if (!isGameOver) window.draw(scoreText);
-		if (isGameOver) window.draw(titleText);
+		if (isGameStarted) window.draw(scoreText);
+		if (!isGameStarted) {
+			window.draw(titleText);
+			window.draw(tutoText);
+		}
+		if (isGameOver) {
+			window.draw(restartButton);
+			window.draw(restartButtonText);
+		}
 		window.display();
 	}
 
