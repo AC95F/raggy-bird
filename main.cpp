@@ -1,5 +1,6 @@
 #include <iostream>
 #include <random>
+#include <string>
 #include <vector>
 #include "constants.h"
 #include "main.h"
@@ -18,6 +19,15 @@ int main()
 	window.setVerticalSyncEnabled(true);
 
 	int score = 0;
+
+	sf::SoundBuffer scoreSoundBuffer;
+	sf::Sound scoreSound = LoadSound("assets/sounds/score1.wav", scoreSoundBuffer);
+
+	sf::SoundBuffer flapSoundBuffer;
+	sf::Sound flapSound = LoadSound("assets/sounds/flap1.wav", flapSoundBuffer);
+
+	sf::SoundBuffer deathSoundBuffer;
+	sf::Sound deathSound = LoadSound("assets/sounds/death1.wav", deathSoundBuffer);
 
 	bool isGameOver = false;
 	bool isGameStarted = false;
@@ -66,8 +76,7 @@ int main()
 	restartButtonText.setString("Restart");
 	restartButtonText.setCharacterSize(22);
 	restartButtonText.setOrigin(restartButtonText.getLocalBounds().width / 2.f, restartButtonText.getLocalBounds().height / 2.f);
-	restartButtonText.setPosition(restartButton.getPosition().x,
-									restartButton.getPosition().y - restartButtonText.getLocalBounds().height);
+	restartButtonText.setPosition(restartButton.getPosition().x, restartButton.getPosition().y - restartButtonText.getLocalBounds().height);
 	restartButtonText.setFillColor(sf::Color::Black);
 
 	float pipeSpeed = 144.f;
@@ -119,6 +128,7 @@ int main()
 			if (event.type == sf::Event::KeyPressed) {
 				if (event.key.code == sf::Keyboard::Space && !isGameOver) {
 					yVelocity = jumpForce;
+					flapSound.play();
 					if (!isGameStarted) isGameStarted = true;
 				}
 			}
@@ -162,11 +172,11 @@ int main()
 				yVelocity = 0.f;
 			}
 			
+			birdHitbox.setPosition(playerBird.getPosition());
+
 			if (!isBirdInGround) {
 				playerBird.setRotation(yVelocity * 3.f);
 			}
-
-			birdHitbox.setPosition(playerBird.getPosition());
 
 			// Pipe generation
 			if (pipeTimer.getElapsedTime().asSeconds() >= timeBetweenPipes) {
@@ -182,6 +192,7 @@ int main()
 
 					if (pipes[i].GetPosition() <= playerBird.getPosition().x && !pipes[i].isPassed) {
 						score++;
+						scoreSound.play();
 						pipes[i].isPassed = true;
 					}
 					if (pipes[i].IsOutOfBounds()) {
@@ -190,13 +201,13 @@ int main()
 					}
 					if (birdHitbox.getGlobalBounds().intersects(pipes[i].lowerPartHitbox.getGlobalBounds())
 					|| birdHitbox.getGlobalBounds().intersects(pipes[i].upperPartHitbox.getGlobalBounds())
-					|| birdHitbox.getGlobalBounds().intersects(floor.getGlobalBounds())) {
+					|| birdHitbox.getGlobalBounds().intersects(floor.getGlobalBounds())
+					) {
 						isGameOver = true;
 						yVelocity = jumpForce / 2.f;
+						deathSound.play();
 					}
 				}
-
-
 			}
 			scoreText.setString(std::to_string(score));
 		}
@@ -228,9 +239,9 @@ int main()
 		window.draw(bg);
 		for (size_t i = 0; i < pipes.size(); i++) {
 			window.draw(pipes[i].upperPart);
-			//window.draw(pipes[i].upperPartHitbox);
-
 			window.draw(pipes[i].lowerPart);
+
+			//window.draw(pipes[i].upperPartHitbox);
 			//window.draw(pipes[i].lowerPartHitbox);
 		}
 		window.draw(playerBird);
@@ -249,4 +260,13 @@ int main()
 	}
 
 	return 0;
+}
+
+sf::Sound LoadSound(std::string fileName, sf::SoundBuffer &buffer) {
+	buffer.loadFromFile(fileName);
+
+	sf::Sound sound;
+	sound.setBuffer(buffer);
+
+	return sound;
 }
