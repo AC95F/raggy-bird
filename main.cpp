@@ -234,6 +234,14 @@ int main()
 			birdAnimTimer.restart();
 		}
 
+		// Button indication
+		if (restartButton.getGlobalBounds().contains(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y)) {
+			restartButton.setFillColor(sf::Color(200, 200, 200));
+		}
+		else {
+			restartButton.setFillColor(sf::Color::White);
+		}
+
 		// Rendering
 		window.clear();
 		window.draw(bg);
