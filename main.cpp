@@ -6,8 +6,8 @@
 #include "main.h"
 #include "pipe.h"
 
-int main()
-{
+int main() {
+
 	sf::Texture birdTexture, birdTexture2, birdTexture3, pipeTexture, bgTexture, floorTexture;
 	sf::Sprite bg, playerBird, floor;
 	sf::CircleShape birdHitbox;
@@ -28,6 +28,10 @@ int main()
 
 	sf::SoundBuffer deathSoundBuffer;
 	sf::Sound deathSound = LoadSound("assets/sounds/death1.wav", deathSoundBuffer);
+
+	sf::Music gameMusic;
+	gameMusic.openFromFile("assets/sounds/music1.wav");
+	gameMusic.setVolume(50);
 
 	bool isGameOver = false;
 	bool isGameStarted = false;
@@ -89,10 +93,10 @@ int main()
 	icon.loadFromFile("assets/sprites/bird_icon.png");
 	window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 
-	if (bgTexture.loadFromFile("assets/sprites/bg.jpg")) {
+	if (bgTexture.loadFromFile("assets/sprites/bg.png")) {
 		bg.setTexture(bgTexture);
 	}
-	if (floorTexture.loadFromFile("assets/sprites/floor.jpg")) {
+	if (floorTexture.loadFromFile("assets/sprites/floor.png")) {
 		floor.setTexture(floorTexture);
 		floor.setScale(1.5f, 1.5f);
 	}
@@ -110,7 +114,7 @@ int main()
 	playerBird.setPosition(screenResolution.x / 4.f, screenResolution.y / 2.f);
 	floor.setPosition(0.f, screenResolution.y * 0.75f);
 	
-	birdHitbox.setRadius(playerBird.getLocalBounds().width / 2.f);
+	birdHitbox.setRadius(playerBird.getLocalBounds().width / 2.6f);
 	birdHitbox.setFillColor(sf::Color::Green);
 	birdHitbox.setOrigin(birdHitbox.getLocalBounds().width / 2.f, birdHitbox.getLocalBounds().height / 2.f);
 	birdHitbox.setPosition(playerBird.getPosition());
@@ -129,7 +133,10 @@ int main()
 				if (event.key.code == sf::Keyboard::Space && !isGameOver) {
 					yVelocity = jumpForce;
 					flapSound.play();
-					if (!isGameStarted) isGameStarted = true;
+					if (!isGameStarted) {
+						isGameStarted = true;
+						gameMusic.play();
+					}
 				}
 			}
 			if (event.type == sf::Event::MouseButtonPressed) {
@@ -195,17 +202,18 @@ int main()
 						scoreSound.play();
 						pipes[i].isPassed = true;
 					}
-					if (pipes[i].IsOutOfBounds()) {
-						pipes.erase(pipes.begin()+i);
-						i--;
-					}
+
 					if (birdHitbox.getGlobalBounds().intersects(pipes[i].lowerPartHitbox.getGlobalBounds())
 					|| birdHitbox.getGlobalBounds().intersects(pipes[i].upperPartHitbox.getGlobalBounds())
-					|| birdHitbox.getGlobalBounds().intersects(floor.getGlobalBounds())
-					) {
+					|| birdHitbox.getGlobalBounds().intersects(floor.getGlobalBounds())) {
 						isGameOver = true;
 						yVelocity = jumpForce / 2.f;
 						deathSound.play();
+						gameMusic.stop();
+					}
+					if (pipes[i].IsOutOfBounds()) {
+						pipes.erase(pipes.begin()+i);
+						i--;
 					}
 				}
 			}
