@@ -2,11 +2,11 @@
 #include "constants.h"
 #include "pipe.h"
 
-Pipe::Pipe(float gapPos, const sf::Texture *texture) {
-	upperPart.setTexture(*texture);
+Pipe::Pipe(float gapPos, const sf::Texture &texture) {
+	upperPart.setTexture(texture);
 	upperPartHitbox.setFillColor(sf::Color::Green);
 
-	lowerPart.setTexture(*texture);
+	lowerPart.setTexture(texture);
 	lowerPartHitbox.setFillColor(sf::Color::Green);
 
 	upperPart.setScale(1.5f, -1.5f);

@@ -10,7 +10,7 @@ public:
 	
 	bool isPassed;
 
-	Pipe(float gapPos, const sf::Texture *texture);
+	Pipe(float gapPos, const sf::Texture &texture);
 	void Move(float newPos);
 	float GetPosition();
 	bool IsOutOfBounds();

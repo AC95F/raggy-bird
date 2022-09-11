@@ -5,3 +5,5 @@
 
 int main();
 sf::Sound LoadSound(std::string fileName, sf::SoundBuffer &buffer);
+void SaveScore();
+int LoadScore();

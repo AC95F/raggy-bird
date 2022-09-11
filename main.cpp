@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <random>
 #include <string>
 #include <vector>
@@ -19,6 +20,8 @@ int main() {
 	window.setVerticalSyncEnabled(true);
 
 	int score = 0;
+
+	std::fstream highscoreFile;
 
 	sf::SoundBuffer scoreSoundBuffer;
 	sf::Sound scoreSound = LoadSound("assets/sounds/score1.wav", scoreSoundBuffer);
@@ -51,7 +54,7 @@ int main() {
 	scoreText.setFont(font);
 	scoreText.setString("0");
 	scoreText.setCharacterSize(60);
-	scoreText.setPosition((screenResolution.x / 2) - scoreText.getLocalBounds().width / 2, 10);
+	scoreText.setPosition(screenResolution.x / 2 - scoreText.getLocalBounds().width / 2, 10);
 	scoreText.setOutlineColor(sf::Color::Black);
 	scoreText.setOutlineThickness(3.f);
 
@@ -82,6 +85,13 @@ int main() {
 	restartButtonText.setOrigin(restartButtonText.getLocalBounds().width / 2.f, restartButtonText.getLocalBounds().height / 2.f);
 	restartButtonText.setPosition(restartButton.getPosition().x, restartButton.getPosition().y - restartButtonText.getLocalBounds().height);
 	restartButtonText.setFillColor(sf::Color::Black);
+
+	sf::Text highscoreText;
+	highscoreText.setFont(font);
+	highscoreText.setString("0");
+	highscoreText.setCharacterSize(40);
+	highscoreText.setOutlineColor(sf::Color::Black);
+	highscoreText.setOutlineThickness(3.f);
 
 	float pipeSpeed = 144.f;
 	float timeBetweenPipes = 1.5f;
@@ -188,7 +198,7 @@ int main() {
 			// Pipe generation
 			if (pipeTimer.getElapsedTime().asSeconds() >= timeBetweenPipes) {
 				std::uniform_real_distribution<float> dist(-150.f, 50.f);
-				pipes.push_back(Pipe(dist(mt), &pipeTexture));
+				pipes.push_back(Pipe(dist(mt), pipeTexture));
 				pipeTimer.restart();
 			}
 
@@ -199,17 +209,43 @@ int main() {
 
 					if (pipes[i].GetPosition() <= playerBird.getPosition().x && !pipes[i].isPassed) {
 						score++;
+						scoreText.setPosition(screenResolution.x / 2 - scoreText.getLocalBounds().width / 2, 10);
 						scoreSound.play();
 						pipes[i].isPassed = true;
 					}
-
 					if (birdHitbox.getGlobalBounds().intersects(pipes[i].lowerPartHitbox.getGlobalBounds())
 					|| birdHitbox.getGlobalBounds().intersects(pipes[i].upperPartHitbox.getGlobalBounds())
 					|| birdHitbox.getGlobalBounds().intersects(floor.getGlobalBounds())) {
+						// Game Over
 						isGameOver = true;
 						yVelocity = jumpForce / 2.f;
 						deathSound.play();
 						gameMusic.stop();
+
+						// High score
+						highscoreFile.open("highscore.sav", std::ios::in | std::ios::out);
+						if (highscoreFile.is_open()) {
+							std::string input;
+							std::getline(highscoreFile, input);
+							highscoreFile.clear();
+							highscoreFile.seekg(0);
+							if (!input.empty()) {
+								if (std::stoi(input) < score) {
+									highscoreFile << score;
+									highscoreText.setString("Highscore : " + std::to_string(score));
+								}
+								else {
+									highscoreText.setString("Highscore : " + input);
+								}
+							}
+							else {
+								highscoreFile << score;
+								highscoreText.setString("Highscore : " + std::to_string(score));
+							}
+
+							highscoreFile.close();
+						}
+						highscoreText.setPosition(screenResolution.x / 2 - highscoreText.getLocalBounds().width / 2, scoreText.getPosition().y + 100);
 					}
 					if (pipes[i].IsOutOfBounds()) {
 						pipes.erase(pipes.begin()+i);
@@ -271,6 +307,7 @@ int main() {
 		if (isGameOver) {
 			window.draw(restartButton);
 			window.draw(restartButtonText);
+			window.draw(highscoreText);
 		}
 		window.display();
 	}
