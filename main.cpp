@@ -13,7 +13,7 @@ int main() {
 	sf::Sprite bg, playerBird, floor;
 	sf::CircleShape birdHitbox;
 
-	sf::RenderWindow window(sf::VideoMode(screenResolution.x, screenResolution.y), "Raggy Bird");
+	sf::RenderWindow window(sf::VideoMode(screenResolution.x, screenResolution.y), "Raggy Bird", sf::Style::Close);
 	sf::Time deltaTime;
 	sf::Clock deltaClock, pipeTimer, birdAnimTimer;
 	window.setKeyRepeatEnabled(false);
